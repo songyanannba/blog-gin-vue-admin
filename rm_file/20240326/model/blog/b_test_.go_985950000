@@ -1,0 +1,23 @@
+// 自动生成模板BTest
+package blog
+
+import (
+	"github.com/flipped-aurora/gin-vue-admin/server/global"
+	
+	
+)
+
+// 测试 结构体  BTest
+type BTest struct {
+ global.GVA_MODEL 
+      Id  *int `json:"id" form:"id" gorm:"primarykey;column:id;comment:;" binding:"required"`  //x 
+      Name  string `json:"name" form:"name" gorm:"column:name;comment:;"`  //name 
+      Str  string `json:"str" form:"str" gorm:"column:str;comment:;"`  //str 
+}
+
+
+// TableName 测试 BTest自定义表名 b_test
+func (BTest) TableName() string {
+  return "b_test"
+}
+

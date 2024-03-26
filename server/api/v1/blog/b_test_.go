@@ -1,0 +1,156 @@
+package blog
+
+import (
+	"github.com/flipped-aurora/gin-vue-admin/server/global"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/blog"
+	blogReq "github.com/flipped-aurora/gin-vue-admin/server/model/blog/request"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
+	"github.com/flipped-aurora/gin-vue-admin/server/service"
+	"github.com/flipped-aurora/gin-vue-admin/server/utils"
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+)
+
+type BTestApi struct {
+}
+
+var bTestService = service.ServiceGroupApp.BlogServiceGroup.BTestService
+
+// CreateBTest 创建测试
+// @Tags BTest
+// @Summary 创建测试
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce application/json
+// @Param data body blog.BTest true "创建测试"
+// @Success 200 {string} string "{"success":true,"data":{},"msg":"创建成功"}"
+// @Router /bTest/createBTest [post]
+func (bTestApi *BTestApi) CreateBTest(c *gin.Context) {
+	var bTest blog.BTest
+	err := c.ShouldBindJSON(&bTest)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	bTest.CreatedBy = utils.GetUserID(c)
+
+	if err := bTestService.CreateBTest(&bTest); err != nil {
+		global.GVA_LOG.Error("创建失败!", zap.Error(err))
+		response.FailWithMessage("创建失败", c)
+	} else {
+		response.OkWithMessage("创建成功", c)
+	}
+}
+
+// DeleteBTest 删除测试
+// @Tags BTest
+// @Summary 删除测试
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce application/json
+// @Param data body blog.BTest true "删除测试"
+// @Success 200 {string} string "{"success":true,"data":{},"msg":"删除成功"}"
+// @Router /bTest/deleteBTest [delete]
+func (bTestApi *BTestApi) DeleteBTest(c *gin.Context) {
+	ID := c.Query("ID")
+	userID := utils.GetUserID(c)
+	if err := bTestService.DeleteBTest(ID, userID); err != nil {
+		global.GVA_LOG.Error("删除失败!", zap.Error(err))
+		response.FailWithMessage("删除失败", c)
+	} else {
+		response.OkWithMessage("删除成功", c)
+	}
+}
+
+// DeleteBTestByIds 批量删除测试
+// @Tags BTest
+// @Summary 批量删除测试
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce application/json
+// @Success 200 {string} string "{"success":true,"data":{},"msg":"批量删除成功"}"
+// @Router /bTest/deleteBTestByIds [delete]
+func (bTestApi *BTestApi) DeleteBTestByIds(c *gin.Context) {
+	IDs := c.QueryArray("IDs[]")
+	userID := utils.GetUserID(c)
+	if err := bTestService.DeleteBTestByIds(IDs, userID); err != nil {
+		global.GVA_LOG.Error("批量删除失败!", zap.Error(err))
+		response.FailWithMessage("批量删除失败", c)
+	} else {
+		response.OkWithMessage("批量删除成功", c)
+	}
+}
+
+// UpdateBTest 更新测试
+// @Tags BTest
+// @Summary 更新测试
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce application/json
+// @Param data body blog.BTest true "更新测试"
+// @Success 200 {string} string "{"success":true,"data":{},"msg":"更新成功"}"
+// @Router /bTest/updateBTest [put]
+func (bTestApi *BTestApi) UpdateBTest(c *gin.Context) {
+	var bTest blog.BTest
+	err := c.ShouldBindJSON(&bTest)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	bTest.UpdatedBy = utils.GetUserID(c)
+
+	if err := bTestService.UpdateBTest(bTest); err != nil {
+		global.GVA_LOG.Error("更新失败!", zap.Error(err))
+		response.FailWithMessage("更新失败", c)
+	} else {
+		response.OkWithMessage("更新成功", c)
+	}
+}
+
+// FindBTest 用id查询测试
+// @Tags BTest
+// @Summary 用id查询测试
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce application/json
+// @Param data query blog.BTest true "用id查询测试"
+// @Success 200 {string} string "{"success":true,"data":{},"msg":"查询成功"}"
+// @Router /bTest/findBTest [get]
+func (bTestApi *BTestApi) FindBTest(c *gin.Context) {
+	ID := c.Query("ID")
+	if rebTest, err := bTestService.GetBTest(ID); err != nil {
+		global.GVA_LOG.Error("查询失败!", zap.Error(err))
+		response.FailWithMessage("查询失败", c)
+	} else {
+		response.OkWithData(gin.H{"rebTest": rebTest}, c)
+	}
+}
+
+// GetBTestList 分页获取测试列表
+// @Tags BTest
+// @Summary 分页获取测试列表
+// @Security ApiKeyAuth
+// @accept application/json
+// @Produce application/json
+// @Param data query blogReq.BTestSearch true "分页获取测试列表"
+// @Success 200 {string} string "{"success":true,"data":{},"msg":"获取成功"}"
+// @Router /bTest/getBTestList [get]
+func (bTestApi *BTestApi) GetBTestList(c *gin.Context) {
+	var pageInfo blogReq.BTestSearch
+	err := c.ShouldBindQuery(&pageInfo)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	if list, total, err := bTestService.GetBTestInfoList(pageInfo); err != nil {
+		global.GVA_LOG.Error("获取失败!", zap.Error(err))
+		response.FailWithMessage("获取失败", c)
+	} else {
+		response.OkWithDetailed(response.PageResult{
+			List:     list,
+			Total:    total,
+			Page:     pageInfo.Page,
+			PageSize: pageInfo.PageSize,
+		}, "获取成功", c)
+	}
+}
